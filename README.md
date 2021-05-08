@@ -14,7 +14,7 @@ Installation from pypi using
 
 `pip3 install treehaus`
 
-API Documentation available at []()
+API Documentation available at [https://niallmcc.github.io/treehaus/](https://niallmcc.github.io/treehaus/)
 
 Simple Example:
 
