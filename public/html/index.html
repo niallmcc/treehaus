@@ -1,0 +1,700 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>TreeHaus &#8212; TreeHaus 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="treehaus">
+<h1>TreeHaus<a class="headerlink" href="#treehaus" title="Permalink to this headline">¶</a></h1>
+<p>TreeHaus is a lightweight zero-dependency, pure python3 library for persistent tree-based indexes.</p>
+<p><code class="xref py py-class docutils literal notranslate"><span class="pre">treehaus.TreeHaus</span></code> can be used to create and open files containing a set of dict-like TreeHaus treebased indices represented by <code class="xref py py-class docutils literal notranslate"><span class="pre">treehaus.Index</span></code> instances.</p>
+<div class="section" id="limitations">
+<h2>Limitations<a class="headerlink" href="#limitations" title="Permalink to this headline">¶</a></h2>
+<p>TreeHaus aims to provide tree-based storage with simplicity and robustness.  Look elsewhere if high performance is a high priority.</p>
+<p>Calls to an individual store instance and associated index instances should not be invoked concurrently from multiple threads.</p>
+<p>Multiple TreeHaus stores can be opened concurrently on the same file, but only one instance should be opened for writing.</p>
+<p>When a TreeHaus store is opened it will see only the latest committed changes.</p>
+<p>TreeHaus uses a python3 serialization protocol.  It will not be possible to read a TreeHaus file using other programming languages (including earlier versions of python).</p>
+<p>Keys and values may be of any type supported by the python3 pickle protocol.  However keys within each index should use the same type and be comparable with the python &gt; and &lt; operators.</p>
+</div>
+<div class="section" id="example">
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>
+<span class="kn">import</span> <span class="nn">os.path</span>
+<span class="kn">from</span> <span class="nn">treehaus</span> <span class="kn">import</span> <span class="n">TreeHaus</span>
+
+<span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;simple.th&quot;</span>
+
+<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+<span class="n">TreeHaus</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="n">TreeHaus</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">th1</span><span class="p">:</span>
+    <span class="n">books</span> <span class="o">=</span> <span class="n">th1</span><span class="p">[</span><span class="s2">&quot;books&quot;</span><span class="p">]</span>
+    <span class="n">books</span><span class="p">[</span><span class="s2">&quot;9780140449136&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Crime and Punishment&quot;</span><span class="p">,</span> <span class="s2">&quot;author&quot;</span><span class="p">:</span><span class="s2">&quot;Fyodor Mikhailovich Dostoyevsky&quot;</span> <span class="p">}</span>
+    <span class="n">books</span><span class="p">[</span><span class="s2">&quot;9781853260629&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;title&quot;</span><span class="p">:</span><span class="s2">&quot;War and Peace&quot;</span><span class="p">,</span> <span class="s2">&quot;author&quot;</span><span class="p">:</span><span class="s2">&quot;Leo Tolstoy&quot;</span> <span class="p">}</span>
+
+<span class="k">with</span> <span class="n">TreeHaus</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span><span class="n">readOnly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">th2</span><span class="p">:</span>
+    <span class="n">books</span> <span class="o">=</span> <span class="n">th2</span><span class="p">[</span><span class="s2">&quot;books&quot;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="n">books</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; -&gt; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+
+    <span class="c1"># prints</span>
+    <span class="c1"># 9780140449136 -&gt; {&#39;title&#39;: &#39;Crime and Punishment&#39;, &#39;author&#39;: &#39;Fyodor Mikhailovich Dostoyevsky&#39;}</span>
+    <span class="c1"># 9781853260629 -&gt; {&#39;title&#39;: &#39;War and Peace&#39;, &#39;author&#39;: &#39;Leo Tolstoy&#39;}</span>
+</pre></div>
+</div>
+<p>TreeHaus is a data store consisting of indexes persisted to a file.  Use <cite>TreeHaus.create</cite> to create a store and then <cite>TreeHaus.create</cite> to open and return a <cite>TreeHaus</cite> instance</p>
+<dl class="staticmethod">
+<dt id="treehaus.TreeHaus.create">
+<em class="property">static </em><code class="descclassname">TreeHaus.</code><code class="descname">create</code><span class="sig-paren">(</span><em>path</em>, <em>initial_nodesize=10</em><span class="sig-paren">)</span><a class="headerlink" href="#treehaus.TreeHaus.create" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an empty TreeHaus store</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<em>str</em>) – the path of the file to create, which should not already exist</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body"><strong>initial_nodesize</strong> (<em>int</em>) – integer &gt;= 2, define the size of btree internal nodes</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal notranslate"><span class="pre">FileExistsError</span></code> – raised if the file already exists</td>
+</tr>
+</tbody>
+</table>
+<p>A way you might use me is</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;data.th&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">TreeHaus</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="treehaus.TreeHaus.open">
+<em class="property">static </em><code class="descclassname">TreeHaus.</code><code class="descname">open</code><span class="sig-paren">(</span><em>path</em>, <em>readOnly=False</em>, <em>openAtUpdate=None</em><span class="sig-paren">)</span><a class="headerlink" href="#treehaus.TreeHaus.open" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open a TreeHaus store</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>path</strong> (<em>str</em>) – the path of the file to open, which point to a created TreeHaus file</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body"><ul class="first simple">
+<li><strong>readOnly</strong> (<em>bool</em>) – whether file should be opened in read-only mode (True) or writable mode (False)</li>
+<li><strong>openAtUpdate</strong> (<em>int</em>) – open the file in read-only mode at particular update number</li>
+</ul>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">a <code class="xref py py-class docutils literal notranslate"><span class="pre">treehaus.TreeHaus</span></code> instance allowing the data in the file to be accessed</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal notranslate"><span class="pre">FileNotExistsError</span></code> – raised if the file does not exists</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>A way you might use me is</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;data.th&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">th</span> <span class="o">=</span> <span class="n">TreeHaus</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<p>TreeHaus methods:</p>
+<dl class="method">
+<dt id="treehaus.TreeHaus.getIndex">
+<code class="descclassname">TreeHaus.</code><code class="descname">getIndex</code><span class="sig-paren">(</span><em>indexName</em><span class="sig-paren">)</span><a class="headerlink" href="#treehaus.TreeHaus.getIndex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtain an index within the store, creating if it does not already exist</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>indexName</strong> (<em>str</em>) – the name of the index to obtain</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a <code class="xref py py-class docutils literal notranslate"><span class="pre">treehaus.Index</span></code> instance allowing key-value pairs to be written and read</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal notranslate"><span class="pre">treehaus.StoreClosedException</span></code> – raised if the store has been closed</td>
+</tr>
+</tbody>
+</table>
+<p>A way you might use me is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;data.th&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">th</span> <span class="o">=</span> <span class="n">TreeHaus</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">books</span> <span class="o">=</span> <span class="n">th</span><span class="o">.</span><span class="n">getIndex</span><span class="p">(</span><span class="s2">&quot;books&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="treehaus.TreeHaus.getIndices">
+<code class="descclassname">TreeHaus.</code><code class="descname">getIndices</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#treehaus.TreeHaus.getIndices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the names and numbers of stored keys of all indices in the store</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a list of strings containing the names of all indices</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal notranslate"><span class="pre">treehaus.StoreClosedException</span></code> – raised if the store has been closed</td>
+</tr>
+</tbody>
+</table>
+<p>A way you might use me is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;~/data.th&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">th</span> <span class="o">=</span> <span class="n">TreeHaus</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">th</span><span class="o">.</span><span class="n">getIndices</span><span class="p">()</span>
+<span class="go">[(&#39;books&#39;, 107),(&#39;records&#39;, 33)]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="treehaus.TreeHaus.removeIndex">
+<code class="descclassname">TreeHaus.</code><code class="descname">removeIndex</code><span class="sig-paren">(</span><em>indexName</em><span class="sig-paren">)</span><a class="headerlink" href="#treehaus.TreeHaus.removeIndex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove an index from the store</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>indexName</strong> (<em>str</em>) – the name of the index to remove</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal notranslate"><span class="pre">treehaus.StoreClosedException</span></code> – raised if the store has been closed</td>
+</tr>
+</tbody>
+</table>
+<p>A way you might use me is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;~/data.th&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">th</span> <span class="o">=</span> <span class="n">TreeHaus</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">th</span><span class="o">.</span><span class="n">removeIndex</span><span class="p">(</span><span class="s2">&quot;records&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="treehaus.TreeHaus.getUpdates">
+<code class="descclassname">TreeHaus.</code><code class="descname">getUpdates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#treehaus.TreeHaus.getUpdates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get an iterator over the set of updates that were successfully committed to the store</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">iterator returning (updateNumber,timestamp,indexNameCardinalityMap,metadata) tuples</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal notranslate"><span class="pre">treehaus.StoreClosedException</span></code> – raised if the store has been closed</td>
+</tr>
+</tbody>
+</table>
+<p>Most recent updates are returned first</p>
+<p>A way you might use me is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;~/data.th&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">th</span> <span class="o">=</span> <span class="n">TreeHaus</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">th</span><span class="o">.</span><span class="n">getUpdates</span><span class="p">()</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+<span class="go">(23, 1558273679, {&#39;books&#39;: 107, &#39;records&#39;: 33}, &#39;add latest titles&#39;)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="treehaus.TreeHaus.commit">
+<code class="descclassname">TreeHaus.</code><code class="descname">commit</code><span class="sig-paren">(</span><em>metadata=''</em><span class="sig-paren">)</span><a class="headerlink" href="#treehaus.TreeHaus.commit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Commit all outstanding changes in the store to file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">an updateNumber for the commit.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal notranslate"><span class="pre">treehaus.StoreClosedException</span></code> – raised if the store has been closed</td>
+</tr>
+</tbody>
+</table>
+<p>A way you might use me is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;~/data.th&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">th</span> <span class="o">=</span> <span class="n">TreeHaus</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">th</span><span class="o">.</span><span class="n">getIndex</span><span class="p">(</span><span class="s2">&quot;books&quot;</span><span class="p">)[</span><span class="s2">&quot;9781853260629&quot;</span><span class="p">]</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span><span class="s2">&quot;War and Peace&quot;</span><span class="p">,</span><span class="s2">&quot;author&quot;</span><span class="p">:</span><span class="s2">&quot;Leo Tolstoy&quot;</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">th</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+<span class="go">24</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="treehaus.TreeHaus.rollback">
+<code class="descclassname">TreeHaus.</code><code class="descname">rollback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#treehaus.TreeHaus.rollback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cancel all outstanding changes made to the store</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal notranslate"><span class="pre">treehaus.StoreClosedException</span></code> – raised if the store has been closed</td>
+</tr>
+</tbody>
+</table>
+<p>A way you might use me is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;~/data.th&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">th</span> <span class="o">=</span> <span class="n">TreeHaus</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">th</span><span class="o">.</span><span class="n">getIndex</span><span class="p">(</span><span class="s2">&quot;books&quot;</span><span class="p">)[</span><span class="s2">&quot;9781853260629&quot;</span><span class="p">]</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span><span class="s2">&quot;War and Peace&quot;</span><span class="p">,</span><span class="s2">&quot;author&quot;</span><span class="p">:</span><span class="s2">&quot;David Tolstoy&quot;</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">th</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span> <span class="c1"># mistake - should be Leo not David - do not persist this change</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="treehaus.TreeHaus.close">
+<code class="descclassname">TreeHaus.</code><code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#treehaus.TreeHaus.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>close the instance if it is not already closed, any in-progress updates will be committed</p>
+<p>after close is called any opened indices or iterators can no longer be used</p>
+<p>A way you might use me is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;~/data.th&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TreeHaus</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">th</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="o">...</span> <span class="n">read</span> <span class="ow">and</span> <span class="n">write</span> <span class="n">to</span> <span class="n">indexes</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="o">...</span> <span class="n">after</span> <span class="k">with</span> <span class="n">block</span> <span class="n">ends</span><span class="p">,</span> <span class="n">TreeHaus</span><span class="o">.</span><span class="n">close</span><span class="p">()</span> <span class="n">will</span> <span class="n">be</span> <span class="n">called</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="treehaus.TreeHaus.getVersion">
+<em class="property">static </em><code class="descclassname">TreeHaus.</code><code class="descname">getVersion</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#treehaus.TreeHaus.getVersion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the TreeHaus version</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Version number of TreeHaus as a string in the format “VMajor.VMinor”</td>
+</tr>
+</tbody>
+</table>
+<p>A way you might use me is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">TreeHaus</span><span class="o">.</span><span class="n">version</span><span class="p">()</span>
+<span class="go">&quot;0.1&quot;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<div class="section" id="index">
+<h3>Index<a class="headerlink" href="#index" title="Permalink to this headline">¶</a></h3>
+<p>a TreeHaus Index is a dict-like container within a TreeHaus store and returned from a call to <cite>treehaus.TreeHaus.getIndex</cite></p>
+<p>Methods to retrieve information:</p>
+<dl class="method">
+<dt id="treehaus.Index.__getitem__">
+<code class="descclassname">Index.</code><code class="descname">__getitem__</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#treehaus.Index.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get an item from this index</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>key</strong> – the key value to retrieve</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the value of the key</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal notranslate"><span class="pre">KeyError</span></code> – (if the key does not exist in the index)</td>
+</tr>
+</tbody>
+</table>
+<p>A way you might use me is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">treehaus</span> <span class="kn">import</span> <span class="n">TreeHaus</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">th</span> <span class="o">=</span> <span class="n">TreeHaus</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;data.th&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">books</span> <span class="o">=</span> <span class="n">th</span><span class="o">.</span><span class="n">getIndex</span><span class="p">(</span><span class="s2">&quot;books&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">book_details</span> <span class="o">=</span> <span class="n">books</span><span class="p">[</span><span class="s2">&quot;0140449132&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="treehaus.Index.__contains__">
+<code class="descclassname">Index.</code><code class="descname">__contains__</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#treehaus.Index.__contains__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test if a key exists in the index</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>key</strong> – the key value to test</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the key is found in the index, or False otherwise</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal notranslate"><span class="pre">treehaus.StoreClosedException</span></code> – raised if the store has been closed</td>
+</tr>
+</tbody>
+</table>
+<p>A way you might use me is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">treehaus</span> <span class="kn">import</span> <span class="n">TreeHaus</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">th</span> <span class="o">=</span> <span class="n">TreeHaus</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;data.th&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">books</span> <span class="o">=</span> <span class="n">th</span><span class="o">.</span><span class="n">getIndex</span><span class="p">(</span><span class="s2">&quot;books&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="s2">&quot;0140449132&quot;</span> <span class="ow">in</span> <span class="n">books</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="treehaus.Index.get">
+<code class="descclassname">Index.</code><code class="descname">get</code><span class="sig-paren">(</span><em>key</em>, <em>defaultvalue=None</em><span class="sig-paren">)</span><a class="headerlink" href="#treehaus.Index.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get an item from this index</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>key</strong> – the key value to retrieve</li>
+<li><strong>defaultvalue</strong> – a value to return if the key was not found</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">the value of the key if found in the index, or the defaultvalue otherwise</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal notranslate"><span class="pre">treehaus.StoreClosedException</span></code> – raised if the store has been closed</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>A way you might use me is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">treehaus</span> <span class="kn">import</span> <span class="n">TreeHaus</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">th</span> <span class="o">=</span> <span class="n">TreeHaus</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;data.th&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">books</span> <span class="o">=</span> <span class="n">th</span><span class="o">.</span><span class="n">getIndex</span><span class="p">(</span><span class="s2">&quot;books&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">book_details</span> <span class="o">=</span> <span class="n">books</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;0140449132&quot;</span><span class="p">,{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span><span class="s2">&quot;unknown&quot;</span><span class="p">,</span><span class="s2">&quot;author&quot;</span><span class="p">:</span><span class="s2">&quot;unknown&quot;</span><span class="p">})</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="treehaus.Index.traverse">
+<code class="descclassname">Index.</code><code class="descname">traverse</code><span class="sig-paren">(</span><em>start=None</em>, <em>stop=None</em><span class="sig-paren">)</span><a class="headerlink" href="#treehaus.Index.traverse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterate over the index in key order</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body"><ul class="first simple">
+<li><strong>start</strong> – start the iterator from this key value</li>
+<li><strong>stop</strong> – end the iterator at this key value</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an iterator which returns (key,value) pairs</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">treehaus.StoreClosedException</span></code> – raised if the store has been closed</li>
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">treehaus.IndexModifiedException</span></code> – raised during iteration if the index was modified after the iterator was opened</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>A way you might use me is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">treehaus</span> <span class="kn">import</span> <span class="n">TreeHaus</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">th</span> <span class="o">=</span> <span class="n">TreeHaus</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;data.th&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">books</span> <span class="o">=</span> <span class="n">th</span><span class="o">.</span><span class="n">getIndex</span><span class="p">(</span><span class="s2">&quot;books&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="p">(</span><span class="n">isbn</span><span class="p">,</span><span class="n">details</span><span class="p">)</span> <span class="ow">in</span> <span class="n">books</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">isbn</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="treehaus.Index.rtraverse">
+<code class="descclassname">Index.</code><code class="descname">rtraverse</code><span class="sig-paren">(</span><em>start=None</em>, <em>stop=None</em><span class="sig-paren">)</span><a class="headerlink" href="#treehaus.Index.rtraverse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterate over the index in reverse order</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body"><ul class="first simple">
+<li><strong>start</strong> – start the iterator from this key value</li>
+<li><strong>stop</strong> – end the iterator at this key value</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an iterator which returns (key,value) pairs in reverse key order</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">treehaus.StoreClosedException</span></code> – raised if the store has been closed</li>
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">treehaus.IndexModifiedException</span></code> – raised during iteration if the index was modified after the iterator was opened</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>A way you might use me is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">treehaus</span> <span class="kn">import</span> <span class="n">TreeHaus</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">th</span> <span class="o">=</span> <span class="n">TreeHaus</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;data.th&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">books</span> <span class="o">=</span> <span class="n">th</span><span class="o">.</span><span class="n">getIndex</span><span class="p">(</span><span class="s2">&quot;books&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="p">(</span><span class="n">isbn</span><span class="p">,</span><span class="n">details</span><span class="p">)</span> <span class="ow">in</span> <span class="n">books</span><span class="o">.</span><span class="n">rtraverse</span><span class="p">():</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">isbn</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="treehaus.Index.history">
+<code class="descclassname">Index.</code><code class="descname">history</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#treehaus.Index.history" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a history of the values assigned to a key, most recently assigned value first</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>key</strong> – the key of interest</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">an iterator which returns (updateNumber,value) pairs indicating that the key was assigned that value at that updateNumber</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">treehaus.StoreClosedException</span></code> – raised if the store has been closed</li>
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">treehaus.IndexModifiedException</span></code> – raised during iteration if the index was modified after the iterator was opened</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>A way you might use me is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">treehaus</span> <span class="kn">import</span> <span class="n">TreeHaus</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">th</span> <span class="o">=</span> <span class="n">TreeHaus</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;data.th&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">books</span> <span class="o">=</span> <span class="n">th</span><span class="o">.</span><span class="n">getIndex</span><span class="p">(</span><span class="s2">&quot;books&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="p">(</span><span class="n">updateNumber</span><span class="p">,</span><span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">books</span><span class="o">.</span><span class="n">history</span><span class="p">(</span><span class="s2">&quot;0140449132&quot;</span><span class="p">):</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">((</span><span class="n">updateNumber</span><span class="p">,</span><span class="n">value</span><span class="p">)))</span>
+<span class="go">(45,{ &quot;title&quot;: &quot;Crime and Punishment&quot;, &quot;author&quot;:&quot;Fyodor Mikhailovich Dostoyevsky&quot; })</span>
+<span class="go">(23,{ &quot;title&quot;: &quot;Crimes and Punishment&quot;, &quot;author&quot;:&quot;Dave Dostoyevsky&quot; })</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<p>Methods to update the index:</p>
+<dl class="method">
+<dt id="treehaus.Index.__setitem__">
+<code class="descclassname">Index.</code><code class="descname">__setitem__</code><span class="sig-paren">(</span><em>key</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#treehaus.Index.__setitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add or modify an item in this index</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>key</strong> – the key value to add</li>
+<li><strong>value</strong> – the associated value to add</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">treehaus.StoreClosedException</span></code> – raised if the store has been closed</li>
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">treehaus.ReadOnlyException</span></code> – (if the store is opened read-only)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>A way you might use me is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">treehaus</span> <span class="kn">import</span> <span class="n">TreeHaus</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">th</span> <span class="o">=</span> <span class="n">TreeHaus</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;data.th&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">books</span> <span class="o">=</span> <span class="n">th</span><span class="o">.</span><span class="n">getIndex</span><span class="p">(</span><span class="s2">&quot;books&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">books</span><span class="p">[</span><span class="s2">&quot;0140449132&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Crime and Punishment&quot;</span><span class="p">,</span> <span class="s2">&quot;author&quot;</span><span class="p">:</span><span class="s2">&quot;Fyodor Mikhailovich Dostoyevsky&quot;</span> <span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="treehaus.Index.__delitem__">
+<code class="descclassname">Index.</code><code class="descname">__delitem__</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#treehaus.Index.__delitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete an item from this index</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>key</strong> – the key value to delete</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">the value of the key that was removed</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">treehaus.StoreClosedException</span></code> – raised if the store has been closed</li>
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">treehaus.ReadOnlyException</span></code> – (if the store is opened read-only)</li>
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">KeyError</span></code> – (if the key does not exist in the index)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>A way you might use me is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">treehaus</span> <span class="kn">import</span> <span class="n">TreeHaus</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">th</span> <span class="o">=</span> <span class="n">TreeHaus</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;data.th&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">books</span> <span class="o">=</span> <span class="n">th</span><span class="o">.</span><span class="n">getIndex</span><span class="p">(</span><span class="s2">&quot;books&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">removed_book</span> <span class="o">=</span> <span class="k">del</span> <span class="n">books</span><span class="p">[</span><span class="s2">&quot;0140449132&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="treehaus.Index.pop">
+<code class="descclassname">Index.</code><code class="descname">pop</code><span class="sig-paren">(</span><em>key</em>, <em>defaultvalue=None</em><span class="sig-paren">)</span><a class="headerlink" href="#treehaus.Index.pop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove and return a value for a specified key</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>key</strong> – the key to retrieve and remove</li>
+<li><strong>defaultvalue</strong> – the value to return if the key was not found</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">if the key already existed in the index its value is returned, otherwise defaultvalue is returned</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">treehaus.StoreClosedException</span></code> – raised if the store has been closed</li>
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">treehaus.ReadOnlyException</span></code> – (if the store is opened read-only)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>A way you might use me is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">treehaus</span> <span class="kn">import</span> <span class="n">TreeHaus</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">th</span> <span class="o">=</span> <span class="n">TreeHaus</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;data.th&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">books</span> <span class="o">=</span> <span class="n">th</span><span class="o">.</span><span class="n">getIndex</span><span class="p">(</span><span class="s2">&quot;books&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">removed_book</span> <span class="o">=</span> <span class="n">books</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;0140449132&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="treehaus.Index.update">
+<code class="descclassname">Index.</code><code class="descname">update</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#treehaus.Index.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the index with multiple (key,value) pairs</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>other</strong> – dict or iterable returning (key,value) pairs</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal notranslate"><span class="pre">treehaus.StoreClosedException</span></code> – raised if the store has been closed</td>
+</tr>
+</tbody>
+</table>
+<p>A way you might use me is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">treehaus</span> <span class="kn">import</span> <span class="n">TreeHaus</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">th</span> <span class="o">=</span> <span class="n">TreeHaus</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;data.th&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">books</span> <span class="o">=</span> <span class="n">th</span><span class="o">.</span><span class="n">getIndex</span><span class="p">(</span><span class="s2">&quot;books&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">newtitles</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">newtitles</span><span class="p">[</span><span class="s2">&quot;9780140449136&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Crime and Punishment&quot;</span><span class="p">,</span> <span class="s2">&quot;author&quot;</span><span class="p">:</span><span class="s2">&quot;Fyodor Mikhailovich Dostoyevsky&quot;</span> <span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">newtitles</span><span class="p">[</span><span class="s2">&quot;9781853260629&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;title&quot;</span><span class="p">:</span><span class="s2">&quot;War and Peace&quot;</span><span class="p">,</span> <span class="s2">&quot;author&quot;</span><span class="p">:</span><span class="s2">&quot;Leo Tolstoy&quot;</span> <span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">books</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">newtitles</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">books</span><span class="p">[</span><span class="s2">&quot;9781853260629&quot;</span><span class="p">]</span>
+<span class="go">{ &quot;title&quot;:&quot;War and Peace&quot;, &quot;author&quot;:&quot;Leo Tolstoy&quot; }</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">books</span><span class="p">[</span><span class="s2">&quot;9780140449136&quot;</span><span class="p">]</span>
+<span class="go">{ &quot;title&quot;: &quot;Crime and Punishment&quot;, &quot;author&quot;:&quot;Fyodor Mikhailovich Dostoyevsky&quot; }</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">th</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+<span class="go">54</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="treehaus.Index.clear">
+<code class="descclassname">Index.</code><code class="descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#treehaus.Index.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove all keys from the index</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">treehaus.ReadOnlyException</span></code> – (if the store is opened read-only)</li>
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">treehaus.StoreClosedException</span></code> – raised if the store has been closed</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>A way you might use me is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">treehaus</span> <span class="kn">import</span> <span class="n">TreeHaus</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">th</span> <span class="o">=</span> <span class="n">TreeHaus</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;data.th&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">books</span> <span class="o">=</span> <span class="n">th</span><span class="o">.</span><span class="n">getIndex</span><span class="p">(</span><span class="s2">&quot;books&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">books</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">books</span><span class="p">)</span>
+<span class="go">0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, TreeHaus Developers.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
